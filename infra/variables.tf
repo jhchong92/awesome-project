@@ -15,3 +15,17 @@ variable "azs" {
  description = "Availability Zones"
  default     = ["ap-southeast-1a", "ap-southeast-1b"]
 }
+
+variable "db_username" {
+  description = "Username for DB"
+  type = string
+  default = "admin"
+  sensitive = true
+}
+
+variable "db_password" {
+  description = "Password for DB"
+  type = string
+  default = "admin123456"
+  sensitive = true
+}

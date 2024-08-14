@@ -62,6 +62,15 @@ resource "aws_security_group" "ec2_sg" {
     cidr_blocks = [aws_vpc.main.cidr_block]
     protocol = "tcp"
   }
+
+  ingress {
+    security_groups = [ aws_security_group.nlb.id ]
+    from_port = 80
+    to_port = 80
+    cidr_blocks = [aws_vpc.main.cidr_block]
+    protocol = "tcp"
+  }
+
   egress {
     from_port        = 3306
     to_port          = 3306
@@ -91,6 +100,9 @@ resource "aws_autoscaling_group" "app_server_asg" {
   max_size = 1
   min_size = 1
   vpc_zone_identifier = aws_subnet.private_subnets[*].id
+
+  # Add to LB Target Group
+  target_group_arns = [ aws_lb_target_group.tg.arn ]
 
   launch_template {
     id      = aws_launch_template.server_launch_template.id

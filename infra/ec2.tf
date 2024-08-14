@@ -36,6 +36,7 @@ data "aws_ami" "amzn-linux-2023-ami" {
   }
 }
 
+# SSM Host
 resource "aws_instance" "ssm-host" {
   ami = data.aws_ami.amzn-linux-2023-ami.id
   instance_type = "t2.nano"
@@ -45,6 +46,55 @@ resource "aws_instance" "ssm-host" {
 
   tags = {
     Name = "Awesome SSM Host"
+  }
+}
+
+# App Server
+resource "aws_security_group" "ec2_sg" {
+  name        = "app-server-security-group"
+  description = "Allow outbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    # Application Port
+    from_port = 80
+    to_port = 80
+    cidr_blocks = [aws_vpc.main.cidr_block]
+    protocol = "tcp"
+  }
+  egress {
+    from_port        = 3306
+    to_port          = 3306
+    protocol         = "tcp"
+    cidr_blocks      = aws_subnet.private_subnets[*].cidr_block
+  }
+
+  tags = {
+    Name = "AppServer SG"
+  }
+}
+
+resource "aws_launch_template" "server_launch_template" {
+  vpc_security_group_ids = [ aws_security_group.ec2_sg.id ]
+  name_prefix = "awesome-server"
+  image_id = data.aws_ami.amzn-linux-2023-ami.id
+  instance_type = "t2.nano"
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups = [ aws_security_group.ec2_sg.id ]
+  }
+
+}
+
+resource "aws_autoscaling_group" "app_server_asg" {
+  desired_capacity = 1
+  max_size = 1
+  min_size = 1
+  vpc_zone_identifier = aws_subnet.private_subnets[*].id
+
+  launch_template {
+    id      = aws_launch_template.server_launch_template.id
+    version = aws_launch_template.server_launch_template.latest_version
   }
 }
 

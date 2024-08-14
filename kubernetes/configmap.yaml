@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: awesome
+  name: awesome-config
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <body>
+
+    <h1>My First Heading</h1>
+    <p>My first paragraph.</p>
+
+    </body>
+    </html>

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: awesome
+  name: busybox-deployment
+  labels:
+    app: busybox
+spec:
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      containers:
+      - name: busybox
+        image: busybox:1.36.1
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: "/var/logs"
+          name: awesome-vol
+        env:
+        - name: SECRET
+          valueFrom:
+            secretKeyRef:
+              name: awesome-secret
+              key: secret-sauce
+      volumes:
+      - name: awesome-vol
+        persistentVolumeClaim:
+          claimName: awesome-pvc
+      topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            app: busybox
+        maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
